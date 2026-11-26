@@ -7,6 +7,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Any
+from email.utils import parsedate_to_datetime
 
 
 BASE_URL = "https://www.binance.com/bapi/futures/v1/friendly/future/copy-trade"
@@ -15,6 +16,20 @@ MILLISECONDS_PER_DAY = 86_400_000
 
 class BinanceError(RuntimeError):
     pass
+
+
+class BinanceCooldown(BinanceError):
+    def __init__(self, status: int, retry_after: str | None):
+        now = time.time()
+        try:
+            if retry_after and retry_after.isdecimal():
+                until = now + int(retry_after)
+            else:
+                until = parsedate_to_datetime(retry_after or "").timestamp()
+        except (ValueError, TypeError, OverflowError):
+            until = now + (3600 if status == 418 else 900)
+        self.until = max(now + 1, until)
+        super().__init__(f"币安 HTTP {status}，已暂停本批查询")
 
 
 class OperationDataUnavailable(BinanceError):
@@ -91,7 +106,9 @@ class BinanceClient:
                 return result.get("data")
             except urllib.error.HTTPError as error:
                 last_error = error
-                if error.code not in {429, 500, 502, 503, 504}:
+                if error.code in {418, 429}:
+                    raise BinanceCooldown(error.code, error.headers.get("Retry-After")) from error
+                if error.code not in {500, 502, 503, 504}:
                     break
             except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
                 last_error = error

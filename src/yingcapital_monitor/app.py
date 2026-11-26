@@ -3,11 +3,14 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
+from tempfile import NamedTemporaryFile
+from pathlib import Path
 from datetime import datetime, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from .binance import BinanceClient, BinanceError, OperationDataUnavailable
+from .binance import BinanceClient, BinanceCooldown, BinanceError, OperationDataUnavailable
 from .config import Settings
 from .models import ACTION_LABELS, TradeEvent, parse_orders
 from .notify import WeixinNotifier
@@ -73,13 +76,27 @@ def _merge_seen(old: list[str], current: list[str]) -> list[str]:
     return merged[-MAX_SEEN_FINGERPRINTS:]
 
 
+def _fetch_operations(settings: Settings):
+    cooldown = settings.state_path.parent / "binance-cooldown.json"
+    if cooldown.exists() and float(cooldown.read_text()) > time.time():
+        raise BinanceError("币安全局冷却中，本轮跳过请求")
+    try:
+        return BinanceClient(settings.portfolio_id).fetch_operations()
+    except BinanceCooldown as error:
+        cooldown.parent.mkdir(parents=True, exist_ok=True)
+        with NamedTemporaryFile(mode="w", dir=cooldown.parent, delete=False) as tmp:
+            tmp.write(str(error.until))
+        Path(tmp.name).replace(cooldown)
+        raise
+
+
 def run_monitor(settings: Settings) -> int:
     state = load_state(settings.state_path, settings.portfolio_id)
     notifier = WeixinNotifier(settings)
     delivery_errors = _deliver_pending(state, settings, notifier)
 
     try:
-        snapshot = BinanceClient(settings.portfolio_id).fetch_operations()
+        snapshot = _fetch_operations(settings)
     except OperationDataUnavailable as error:
         LOGGER.error(
             "[%s] 最新操作记录当前不可用；保留独立状态，不生成提醒：%s",
@@ -204,7 +221,7 @@ def run_monitors(settings_list: tuple[Settings, ...]) -> int:
 
 def check_api(settings: Settings) -> int:
     try:
-        snapshot = BinanceClient(settings.portfolio_id).fetch_operations()
+        snapshot = _fetch_operations(settings)
     except OperationDataUnavailable as error:
         LOGGER.error("[%s] 最新操作记录接口不可用：%s", settings.trader_name, error)
         return 2
