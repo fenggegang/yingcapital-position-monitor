@@ -32,11 +32,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version: "3.12"
-
       - name: Restore monitor state
         id: restore
         shell: bash
@@ -63,7 +58,7 @@ jobs:
         if: ${{ inputs.check_api }}
         env:
           PYTHONPATH: "src"
-        run: python -m yingcapital_monitor --check-api
+        run: python3 -m yingcapital_monitor --check-api
 
       - name: Monitor latest operation records
         id: monitor
@@ -76,7 +71,7 @@ jobs:
           SUBSCRIPTIONS_URL: "https://yingcapital-subscriptions.gang24518.workers.dev/api/runtime"
           SUBSCRIPTIONS_KEY: ${{ secrets.SUBSCRIPTIONS_KEY }}
           PYTHONPATH: "src"
-        run: python -m yingcapital_monitor
+        run: python3 -m yingcapital_monitor
 
       - name: Send test notification
         id: notification_test
@@ -87,7 +82,7 @@ jobs:
           SUBSCRIPTIONS_URL: "https://yingcapital-subscriptions.gang24518.workers.dev/api/runtime"
           SUBSCRIPTIONS_KEY: ${{ secrets.SUBSCRIPTIONS_KEY }}
           PYTHONPATH: "src"
-        run: python -m yingcapital_monitor --test-notification
+        run: python3 -m yingcapital_monitor --test-notification
 
       - name: Persist monitor state
         if: ${{ always() && steps.restore.outcome == 'success' && hashFiles('.runtime/*.json') != '' }}
