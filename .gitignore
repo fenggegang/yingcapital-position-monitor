@@ -10,3 +10,6 @@ dist/
 work/
 outputs/
 .wrangler/
+
+.dev.vars
+.dev.vars.*

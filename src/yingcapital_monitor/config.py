@@ -2,13 +2,49 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.request
+from uuid import UUID
 from dataclasses import dataclass
 from pathlib import Path
 
-from .ilink import WeixinSession
+from .ilink import WeixinSession, _NoRedirect
 
 
 DEFAULT_TRADERS_CONFIG_PATH = Path("traders.json")
+
+
+@dataclass(frozen=True)
+class Subscription:
+    id: str
+    session: WeixinSession
+    traders: frozenset[str] | None
+
+    @staticmethod
+    def load(url: str, key: str) -> tuple["Subscription", ...]:
+        if not key or not url.startswith("https://"):
+            raise ValueError("提醒管理服务未配置")
+        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}"})
+        with urllib.request.build_opener(_NoRedirect()).open(request, timeout=15) as response:
+            rows = json.load(response)["users"]
+        if not isinstance(rows, list):
+            raise ValueError("无效的订阅列表")
+        result = []
+        known = set()
+        for row in rows:
+            uid, ids = row["id"], row["traders"]
+            if uid != "weixin":
+                UUID(uid)
+            if uid in known or not isinstance(row["enabled"], bool):
+                raise ValueError("无效的收件人")
+            known.add(uid)
+            if ids is not None and not (isinstance(ids, list) and all(
+                isinstance(i, str) and i.isdigit() for i in ids
+            )):
+                raise ValueError("无效的订阅范围")
+            if row["enabled"]:
+                session = WeixinSession.from_json(json.dumps(row["session"]))
+                result.append(Subscription(uid, session, None if ids is None else frozenset(ids)))
+        return tuple(result)
 
 
 @dataclass(frozen=True)
@@ -18,6 +54,14 @@ class Settings:
     timezone: str
     state_path: Path
     weixin_session: WeixinSession | None = None
+
+    subscriptions: tuple[Subscription, ...] | None = None
+
+    def recipients(self) -> dict[str, WeixinSession | None]:
+        if self.subscriptions is None:
+            return {"weixin": self.weixin_session}
+        return {s.id: s.session for s in self.subscriptions
+                if s.traders is None or self.portfolio_id in s.traders}
 
     @classmethod
     def all_from_env(
@@ -30,10 +74,14 @@ class Settings:
                 "TRADERS_CONFIG_PATH", str(DEFAULT_TRADERS_CONFIG_PATH)
             ).strip()
         )
+        source = os.getenv("SUBSCRIPTIONS_URL", "").strip()
+        subscriptions = None
+        if require_notifications and source:
+            subscriptions = Subscription.load(source, os.getenv("SUBSCRIPTIONS_KEY", ""))
         credentials = os.getenv("WEIXIN_SESSION", "").strip()
         session = (
             WeixinSession.from_json(credentials)
-            if require_notifications and credentials else None
+            if require_notifications and subscriptions is None and credentials else None
         )
 
         try:
@@ -83,6 +131,7 @@ class Settings:
                 timezone=timezone,
                 state_path=state_dir / f"{portfolio_id}.json",
                 weixin_session=session,
+                subscriptions=subscriptions,
             )
             item.validate(
                 require_notifications=require_notifications and enabled
@@ -100,5 +149,5 @@ class Settings:
             raise ValueError("币安项目 ID 必须是数字")
         if not self.trader_name:
             raise ValueError("交易员名称不能为空")
-        if require_notifications and self.weixin_session is None:
+        if require_notifications and self.weixin_session is None and self.subscriptions is None:
             raise ValueError("缺少通知配置 WEIXIN_SESSION")

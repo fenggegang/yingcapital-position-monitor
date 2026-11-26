@@ -38,10 +38,15 @@ def _deliver_pending(
     errors: list[str] = []
     for item in list(state.pending):
         event_id = item.event.event_id
-        if not item.delivered["weixin"]:
+        for recipient, sent in list(item.delivered.items()):
+            if sent:
+                continue
+            if recipient not in notifier.recipients:
+                del item.delivered[recipient]
+                continue
             try:
-                notifier.send_weixin(item.event)
-                item.delivered["weixin"] = True
+                notifier.send_weixin(item.event, recipient)
+                item.delivered[recipient] = True
                 save_state(settings.state_path, state)
                 LOGGER.info(
                     "[%s] 微信已发送：action=%s symbol=%s event=%s",
@@ -169,7 +174,9 @@ def run_monitor(settings: Settings) -> int:
     for order in new_orders:
         event = order.to_event()
         if event.event_id not in existing_pending:
-            state.pending.append(PendingNotification(event=event))
+            state.pending.append(PendingNotification(
+                event=event, delivered=dict.fromkeys(notifier.recipients, False)
+            ))
             existing_pending.add(event.event_id)
 
     state.seen_order_fingerprints = _merge_seen(
@@ -282,7 +289,12 @@ def send_test(settings: Settings) -> int:
         order_update_time=now_milliseconds,
     )
     try:
-        WeixinNotifier(settings).send_weixin(event)
+        notifier = WeixinNotifier(settings)
+        if not notifier.recipients:
+            LOGGER.info("测试交易员没有启用的订阅，跳过测试通知")
+            return 0
+        for recipient in notifier.recipients:
+            notifier.send_weixin(event, recipient)
         LOGGER.info("微信连通性测试通知已发送")
         return 0
     except Exception:

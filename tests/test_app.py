@@ -182,7 +182,7 @@ class MonitorTests(unittest.TestCase):
             def fetch(client):
                 return current[client.portfolio_id]
 
-            def capture(notifier, event):
+            def capture(notifier, event, recipient):
                 sent.append((notifier.settings.portfolio_id, event))
 
             with (

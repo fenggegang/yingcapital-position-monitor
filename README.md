@@ -102,9 +102,18 @@
 
 只保留 `.github/workflows/monitor.yml` 一个工作流，由现有 Cloudflare Worker Cron Trigger 每 2 分钟通过 `workflow_dispatch` 触发；工作流仍可手动运行。
 
-所有交易员共用同一个微信单聊。监控程序通过 HTTPS 直接调用腾讯 iLink。交易员的去重状态仍保存在 `monitor-state` 分支，微信凭据仅通过 `WEIXIN_SESSION` 提供。
+监控程序通过 HTTPS 调用腾讯 iLink，交易员去重状态保存在 `monitor-state` 分支。线上工作流按网页保存的订阅名单发送。
 
-### 绑定微信并配置通知
+### 网页管理微信订阅
+
+管理入口为 <https://yingcapital-subscriptions.gang24518.workers.dev>。管理员使用本机保管的管理密钥登录。“绑定微信”会生成二维码；使用收提醒的微信扫码确认，并把网页给出的绑定短语发给机器人。新账号初始暂停，可勾选“接收提醒”，选择全部或部分交易员后保存。重新绑定同一个账号会更新会话并保留偏好。
+
+静态文件与绑定 API 由独立的 Cloudflare Worker 提供，会话和设置持久保存在其 Durable Object 中。GitHub Actions 每轮使用独立的 `SUBSCRIPTIONS_KEY` 读取配置，继续从 GitHub 托管出口查询币安。新事件按当时的收件人名单排队，持久化各自的发送状态；新增订阅不会回放旧队列，已暂停或取消订阅的收件人会从待重试事件中移除。仓库状态分支只保存不透明收件人标识，不保存账号凭据。
+
+### 单账号本地运行
+
+以下步骤用于独立运行的单账号模式。已启用网页管理的工作流通过管理页绑定与刷新微信。
+
 
 1. 在你自己的电脑上，从本仓库目录运行以下命令。使用自己的微信扫码，然后在该机器人私聊里发送终端给出的绑定短语。以下命令使用 uv 临时加载二维码显示库，在终端直接显示二维码。也可用安装了 `qrencode` 的环境执行 `PYTHONPATH=src python3 -m yingcapital_monitor.bind_weixin`。
 

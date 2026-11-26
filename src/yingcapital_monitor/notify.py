@@ -55,9 +55,10 @@ class WeixinNotifier:
     def __init__(self, settings: Settings, *, timeout: float = 20) -> None:
         self.settings = settings
         self.timeout = timeout
+        self.recipients = settings.recipients()
 
-    def send_weixin(self, event: TradeEvent) -> None:
-        session = self.settings.weixin_session
+    def send_weixin(self, event: TradeEvent, recipient: str = "weixin") -> None:
+        session = self.recipients[recipient]
         if session is None:
             raise ValueError("缺少通知配置 WEIXIN_SESSION")
         message = {

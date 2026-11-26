@@ -1,0 +1,305 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f5f6f3;
+  color: #1e2c2a;
+  font:
+    15px/1.6 "Inter",
+    "PingFang SC",
+    system-ui,
+    sans-serif;
+}
+header {
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(5vw, 24px);
+  background: #142e2b;
+  color: #fff;
+}
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mark {
+  display: grid;
+  place-items: center;
+  background: #bde9b9;
+  color: #183c32;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+}
+header .plain {
+  background: transparent;
+  color: #e1eae3;
+  border-color: #547469;
+}
+main {
+  max-width: 1150px;
+  margin: 52px auto;
+  padding: 0 28px;
+}
+.heading,
+.sectionhead,
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.heading {
+  margin-bottom: 26px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(29px, 3.8vw, 40px);
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+h2 {
+  font-size: 19px;
+}
+h3 {
+  font-size: 16px;
+}
+.heading p,
+#login p {
+  margin: 8px 0;
+  color: #5f6f67;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  border: 1px solid #205947;
+  background: #205947;
+  color: white;
+  border-radius: 8px;
+  padding: 9px 17px;
+  cursor: pointer;
+  font-weight: 600;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.plain {
+  color: #385044;
+  background: white;
+  border: 1px solid #c8d3ca;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(210px, 30%) 1fr;
+  gap: 20px;
+}
+.workspace > *,
+#login,
+dialog {
+  background: white;
+  border: 1px solid #d8dfd7;
+  border-radius: 14px;
+}
+.workspace > * {
+  padding: 24px;
+}
+.workspace aside {
+  align-self: start;
+}
+aside h2 {
+  margin-bottom: 14px;
+}
+#users {
+  display: grid;
+  gap: 6px;
+}
+.person {
+  display: flex;
+  width: 100%;
+  text-align: left;
+  align-items: center;
+  gap: 11px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  padding: 12px 10px;
+}
+.person[aria-pressed="true"] {
+  border-color: #b4cbb9;
+  background: #eff6ee;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #d9e9df;
+  color: #31563d;
+}
+.person small,
+.person b {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.person small,
+#count,
+#change {
+  color: #637268;
+  font-size: 13px;
+  font-weight: 400;
+}
+.field {
+  display: grid;
+  gap: 6px;
+  margin: 21px 0 24px;
+}
+input:not([type="checkbox"]) {
+  border: 1px solid #bdcbbf;
+  border-radius: 7px;
+  padding: 8px 12px;
+  min-width: 0;
+  width: 100%;
+  background: white;
+}
+input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #24664c;
+  flex: none;
+}
+label.switch,
+.all,
+.trader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.switch {
+  font-weight: 600;
+}
+.all {
+  margin: 10px 0;
+  background: #f2f7f0;
+  padding: 11px;
+  border-radius: 7px;
+}
+#traders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 14px;
+}
+.trader {
+  padding: 8px;
+  border-bottom: 1px solid #edf0ec;
+}
+.trader:has(:disabled) {
+  color: #536258;
+}
+footer {
+  border-top: 1px solid #dbe1dc;
+  margin-top: 24px;
+  padding-top: 18px;
+}
+#change {
+  margin-right: auto;
+}
+#msg {
+  margin-top: 14px;
+  color: #315241;
+}
+#msg.error {
+  color: #913515;
+}
+#login {
+  max-width: 420px;
+  margin: 12vh auto;
+  padding: 32px;
+}
+#login input {
+  margin: 6px 0 18px;
+}
+dialog {
+  width: min(440px, 92vw);
+  padding: 24px;
+  color: inherit;
+}
+dialog::backdrop {
+  background: #11241f80;
+}
+#qr {
+  display: grid;
+  place-items: center;
+  margin: 16px 0;
+}
+#qr img {
+  width: min(240px, 100%);
+  height: auto;
+}
+#phrase {
+  display: block;
+  font: 600 20px/2 monospace;
+}
+#retry {
+  margin-top: 12px;
+}
+[hidden] {
+  display: none !important;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #87b79e;
+  outline-offset: 2px;
+}
+@media (max-width: 680px) {
+  main {
+    margin: 28px auto;
+    padding: 0 15px;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .workspace > * {
+    padding: 17px;
+  }
+  .heading {
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .heading button {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 8px 11px;
+  }
+  #users {
+    display: flex;
+    overflow-x: auto;
+  }
+  .person {
+    min-width: 135px;
+    width: auto;
+  }
+  .workspace {
+    gap: 12px;
+  }
+  footer {
+    flex-wrap: wrap;
+  }
+  #change {
+    flex-basis: 100%;
+  }
+}

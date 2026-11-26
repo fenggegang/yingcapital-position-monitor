@@ -38,10 +38,12 @@ jobs:
           python-version: "3.12"
 
       - name: Restore monitor state
+        id: restore
         shell: bash
         run: |
           mkdir -p .runtime
-          if git fetch origin monitor-state:refs/remotes/origin/monitor-state; then
+          if git ls-remote --exit-code --heads origin refs/heads/monitor-state > /dev/null; then
+            git fetch origin monitor-state:refs/remotes/origin/monitor-state
             while IFS= read -r state_file; do
               if [[ "${state_file}" =~ ^[0-9]+\.json$ || "${state_file}" == "binance-cooldown.json" ]]; then
                 git show "origin/monitor-state:${state_file}" > ".runtime/${state_file}"
@@ -52,6 +54,8 @@ jobs:
               git show origin/monitor-state:state.json > .runtime/5075281354358777856.json
             fi
           else
+            result=$?
+            if [ "$result" -ne 2 ]; then exit "$result"; fi
             echo "No state branch yet; each trader will create an independent baseline."
           fi
 
@@ -69,7 +73,8 @@ jobs:
           TRADERS_CONFIG_PATH: "traders.json"
           MONITOR_TIMEZONE: "America/New_York"
           MONITOR_STATE_DIR: ".runtime"
-          WEIXIN_SESSION: ${{ secrets.WEIXIN_SESSION }}
+          SUBSCRIPTIONS_URL: "https://yingcapital-subscriptions.gang24518.workers.dev/api/runtime"
+          SUBSCRIPTIONS_KEY: ${{ secrets.SUBSCRIPTIONS_KEY }}
           PYTHONPATH: "src"
         run: python -m yingcapital_monitor
 
@@ -79,12 +84,13 @@ jobs:
         continue-on-error: true
         env:
           TRADERS_CONFIG_PATH: "traders.json"
-          WEIXIN_SESSION: ${{ secrets.WEIXIN_SESSION }}
+          SUBSCRIPTIONS_URL: "https://yingcapital-subscriptions.gang24518.workers.dev/api/runtime"
+          SUBSCRIPTIONS_KEY: ${{ secrets.SUBSCRIPTIONS_KEY }}
           PYTHONPATH: "src"
         run: python -m yingcapital_monitor --test-notification
 
       - name: Persist monitor state
-        if: ${{ always() && hashFiles('.runtime/*.json') != '' }}
+        if: ${{ always() && steps.restore.outcome == 'success' && hashFiles('.runtime/*.json') != '' }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

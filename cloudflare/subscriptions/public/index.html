@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>熬鹰 · 微信提醒管理</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/qr.js" defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="mark" aria-hidden="true">↗</span>熬鹰监控
+      </div>
+      <button id="logout" class="plain" hidden>退出管理</button>
+    </header>
+    <main>
+      <section id="login">
+        <h1>微信提醒管理</h1>
+        <p>使用管理密钥登录。</p>
+        <form id="loginForm">
+          <label
+            >管理密钥<input
+              type="password"
+              id="key"
+              autocomplete="current-password"
+              required /></label
+          ><button>登录管理页</button>
+        </form>
+      </section>
+      <section id="panel" hidden>
+        <div class="heading">
+          <div>
+            <h1>微信提醒管理</h1>
+            <p id="summary"></p>
+          </div>
+          <button id="add">＋ 绑定微信</button>
+        </div>
+        <div class="workspace">
+          <aside>
+            <h2>收件人</h2>
+            <div id="users"></div>
+          </aside>
+          <section class="editor">
+            <div id="empty" hidden>
+              <h2>还没有收件人</h2>
+              <p>绑定微信后，即可选择要接收的交易员提醒。</p>
+            </div>
+            <form id="prefs">
+              <div class="sectionhead">
+                <h2 id="username"></h2>
+                <label class="switch"
+                  ><input type="checkbox" id="enabled" />接收提醒</label
+                >
+              </div>
+              <label class="field"
+                >收件人备注<input id="label" maxlength="40" required
+              /></label>
+              <div class="sectionhead">
+                <h3>订阅交易员</h3>
+                <span id="count"></span>
+              </div>
+              <label class="all"
+                ><input
+                  id="all"
+                  type="checkbox"
+                />关注全部交易员（含未来新增）</label
+              >
+              <div id="traders"></div>
+              <footer>
+                <span id="change"></span
+                ><button id="reset" type="button" class="plain">撤销修改</button
+                ><button id="save">保存设置</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      </section>
+      <p id="msg" role="status" aria-live="polite"></p>
+    </main>
+    <dialog id="bind">
+      <div class="sectionhead">
+        <h2>绑定微信</h2>
+        <button type="button" class="plain" id="close">关闭</button>
+      </div>
+      <form id="newBind">
+        <label class="field"
+          >收件人备注<input
+            id="newlabel"
+            maxlength="40"
+            placeholder="例如：我的第二个微信"
+            required /></label
+        ><button>生成绑定二维码</button>
+      </form>
+      <div id="progress" hidden>
+        <div id="qr"></div>
+        <p id="stage" role="status"></p>
+        <strong id="phrase"></strong>
+        <form id="pinForm" hidden>
+          <label
+            >手机显示的 PIN<input
+              id="pin"
+              type="password"
+              autocomplete="off"
+              required /></label
+          ><button>确认</button>
+        </form>
+        <button type="button" id="retry" hidden>重试</button>
+      </div>
+    </dialog>
+  </body>
+</html>
