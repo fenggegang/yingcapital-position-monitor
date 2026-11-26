@@ -1,0 +1,17 @@
+{
+  "version": 5,
+  "portfolio_id": "4751838302089254401",
+  "initialized": true,
+  "initialized_at": "2026-11-26T02:52:41-05:00",
+  "updated_at": "2026-11-26T04:12:58-05:00",
+  "last_order_time": 1795445614672,
+  "latest_order_fingerprint": "76a9c330259cbe7a9282b9108b303950198e277464e558e6e549cd78150fb945",
+  "api_index_value": "1795189621593",
+  "seen_order_fingerprints": [
+    "76a9c330259cbe7a9282b9108b303950198e277464e558e6e549cd78150fb945",
+    "792e5fc4bb629e46b59980cd3b03207080f7aadc56e275e0a3b67fcdf6f8aea5",
+    "9e2850939289be8e3f16065f35f4a6e18601d2e99ec1bf3c92b57264cd661259",
+    "3dcf6282299df30594ff5b19105e4bc0aafcb5289dc045a8e46d5f0eba972395"
+  ],
+  "pending": []
+}

@@ -1,0 +1,24 @@
+{
+  "version": 5,
+  "portfolio_id": "5126298543040831233",
+  "initialized": true,
+  "initialized_at": "2026-11-26T02:52:40-05:00",
+  "updated_at": "2026-11-26T04:12:57-05:00",
+  "last_order_time": 1795575687831,
+  "latest_order_fingerprint": "7450b0c30679082ac4e19d99ea6c2fc466883817b81aebd87a6dd19f406ca83b",
+  "api_index_value": "1795112247412",
+  "seen_order_fingerprints": [
+    "7450b0c30679082ac4e19d99ea6c2fc466883817b81aebd87a6dd19f406ca83b",
+    "e17b30a6cc2c81ab5ccdb4a49613ed03cc78b8f512e86c50b98777ce2cdb324c",
+    "a4ff570f295d17cb0e6a2764baff9833e292a80f6c2b3a45bd59fb6db55ee555",
+    "678604caa0f6df65bdce71dbb10aa401735bcae55c5b78ecb29424fbac27a94a",
+    "ec7c50d497024497c187eefd268f3e91ec8fa101abb2d51f387e9741bd0a500b",
+    "9f4e55919bd5e01dd0a54654a941a2fff3202cb746aeb87a6d625493710cde01",
+    "43239e6ac0f7b266ded7f289fb43f0443ad952dd74ba3970b6da8800c3900b5c",
+    "f822df0e6f1332ea931125be6ffc025758ea073a5a96262d55a791b5a3008e0b",
+    "c62b0c88ad2eb7e022d1172aa0eda707de8d75ef46b66232c5421c47be55a15f",
+    "94d773f949d2d435cdcd6aea7c979eb66fb7bfdf2634f2e4b827ccaf65516e5d",
+    "fca05e07af87a81c2a24213063f57f87b5031add9d1ec8260add1539c6822e1e"
+  ],
+  "pending": []
+}
