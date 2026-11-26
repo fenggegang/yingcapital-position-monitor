@@ -23,7 +23,9 @@ class Subscription:
     def load(url: str, key: str) -> tuple["Subscription", ...]:
         if not key or not url.startswith("https://"):
             raise ValueError("提醒管理服务未配置")
-        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}"})
+        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}",
+                                                   "User-Agent": "YingCapitalMonitor/4.0",
+                                                   "Accept": "application/json"})
         with urllib.request.build_opener(_NoRedirect()).open(request, timeout=15) as response:
             rows = json.load(response)["users"]
         if not isinstance(rows, list):
