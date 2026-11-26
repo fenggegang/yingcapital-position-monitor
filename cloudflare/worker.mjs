@@ -3,7 +3,8 @@ const dispatchUrl = "https://api.github.com/repos/fenggegang/yingcapital-positio
 export default {
   async scheduled(_event, env) {
     if (!env.GITHUB_DISPATCH_TOKEN) {
-      throw new Error("GitHub dispatch token is missing");
+      console.warn("Waiting for GITHUB_DISPATCH_TOKEN; skipping dispatch");
+      return;
     }
     const response = await fetch(dispatchUrl, {
       method: "POST",
