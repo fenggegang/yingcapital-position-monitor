@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from .binance import BinanceClient, BinanceError, OperationDataUnavailable
 from .config import Settings
 from .models import ACTION_LABELS, TradeEvent, parse_orders
-from .notify import TelegramNotifier
+from .notify import WeixinNotifier
 from .state import PendingNotification, load_state, save_state
 
 
@@ -30,27 +30,27 @@ def _now(timezone_name: str) -> str:
 def _deliver_pending(
     state,
     settings: Settings,
-    notifier: TelegramNotifier,
+    notifier: WeixinNotifier,
 ) -> list[str]:
     errors: list[str] = []
     for item in list(state.pending):
         event_id = item.event.event_id
-        if not item.delivered["telegram"]:
+        if not item.delivered["weixin"]:
             try:
-                notifier.send_telegram(item.event)
-                item.delivered["telegram"] = True
+                notifier.send_weixin(item.event)
+                item.delivered["weixin"] = True
                 save_state(settings.state_path, state)
                 LOGGER.info(
-                    "[%s] Telegram 已发送：action=%s symbol=%s event=%s",
+                    "[%s] 微信已发送：action=%s symbol=%s event=%s",
                     settings.trader_name,
                     ACTION_LABELS[item.event.action],
                     item.event.symbol,
                     event_id[:12],
                 )
             except Exception as error:
-                errors.append(f"Telegram {event_id}: {type(error).__name__}")
+                errors.append(f"微信 {event_id}: {type(error).__name__}")
                 LOGGER.error(
-                    "[%s] Telegram 通知失败，将在下次运行重试："
+                    "[%s] 微信通知失败，将在下次运行重试："
                     "event=%s（详细错误已隐藏）",
                     settings.trader_name,
                     event_id[:12],
@@ -75,7 +75,7 @@ def _merge_seen(old: list[str], current: list[str]) -> list[str]:
 
 def run_monitor(settings: Settings) -> int:
     state = load_state(settings.state_path, settings.portfolio_id)
-    notifier = TelegramNotifier(settings)
+    notifier = WeixinNotifier(settings)
     delivery_errors = _deliver_pending(state, settings, notifier)
 
     try:
@@ -179,7 +179,7 @@ def run_monitor(settings: Settings) -> int:
         return 1 if delivery_errors else 0
 
     LOGGER.info(
-        "[%s] 检测到 %d 条新增真实操作记录，准备发送 Telegram",
+        "[%s] 检测到 %d 条新增真实操作记录，准备发送微信",
         settings.trader_name,
         len(new_orders),
     )
@@ -250,7 +250,7 @@ def check_apis(settings_list: tuple[Settings, ...]) -> int:
 def send_test(settings: Settings) -> int:
     now_milliseconds = int(datetime.now(timezone.utc).timestamp() * 1000)
     event = TradeEvent(
-        order_fingerprint="telegram-connectivity-test",
+        order_fingerprint="weixin-connectivity-test",
         action="OPEN_LONG",
         symbol="TESTUSDT",
         base_asset="TEST",
@@ -265,11 +265,11 @@ def send_test(settings: Settings) -> int:
         order_update_time=now_milliseconds,
     )
     try:
-        TelegramNotifier(settings).send_telegram(event)
-        LOGGER.info("Telegram 连通性测试通知已发送")
+        WeixinNotifier(settings).send_weixin(event)
+        LOGGER.info("微信连通性测试通知已发送")
         return 0
     except Exception:
-        LOGGER.error("Telegram 连通性测试失败（详细错误已隐藏）")
+        LOGGER.error("微信连通性测试失败（详细错误已隐藏）")
         return 1
 
 
@@ -284,7 +284,7 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument(
         "--test-notification",
         action="store_true",
-        help="仅发送一条 Telegram 连通性测试通知",
+        help="仅发送一条微信连通性测试通知",
     )
     return parser
 

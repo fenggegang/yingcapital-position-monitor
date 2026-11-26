@@ -10,14 +10,14 @@ from typing import Any
 from .models import TradeEvent
 
 
-STATE_VERSION = 3
+STATE_VERSION = 4
 
 
 @dataclass
 class PendingNotification:
     event: TradeEvent
     delivered: dict[str, bool] = field(
-        default_factory=lambda: {"telegram": False}
+        default_factory=lambda: {"weixin": False}
     )
 
     def to_dict(self) -> dict[str, Any]:
@@ -26,9 +26,10 @@ class PendingNotification:
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "PendingNotification":
         delivered = raw.get("delivered", {})
+        previously_sent = delivered.get("weixin", delivered.get("telegram", False))
         return cls(
             event=TradeEvent.from_dict(raw["event"]),
-            delivered={"telegram": bool(delivered.get("telegram", False))},
+            delivered={"weixin": bool(previously_sent)},
         )
 
 
@@ -68,7 +69,7 @@ class MonitorState:
         version = raw.get("version")
         if version == 1:
             return cls(portfolio_id=portfolio_id)
-        if version not in {2, STATE_VERSION}:
+        if version not in {2, 3, STATE_VERSION}:
             raise ValueError("不支持的状态文件版本")
 
         fingerprints = raw.get("seen_order_fingerprints", [])

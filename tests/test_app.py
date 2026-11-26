@@ -141,8 +141,6 @@ def make_settings(directory: Path) -> tuple[Settings, ...]:
             trader_name=name,
             timezone="America/New_York",
             state_path=directory / f"{portfolio_id}.json",
-            telegram_bot_token="not-a-real-token",
-            telegram_chat_id="6545798564",
         )
         for portfolio_id, name in TRADERS
     )
@@ -194,7 +192,7 @@ class MonitorTests(unittest.TestCase):
                     side_effect=fetch,
                 ),
                 patch(
-                    "yingcapital_monitor.app.TelegramNotifier.send_telegram",
+                    "yingcapital_monitor.app.WeixinNotifier.send_weixin",
                     autospec=True,
                     side_effect=capture,
                 ),
@@ -297,8 +295,7 @@ class MonitorTests(unittest.TestCase):
                 trader_name="自定义显示昵称",
                 timezone=configured.timezone,
                 state_path=configured.state_path,
-                telegram_bot_token=configured.telegram_bot_token,
-                telegram_chat_id=configured.telegram_chat_id,
+                weixin_session=configured.weixin_session,
             )
 
             with (
@@ -307,7 +304,7 @@ class MonitorTests(unittest.TestCase):
                     return_value=live_snapshot,
                 ),
                 patch(
-                    "yingcapital_monitor.app.TelegramNotifier.send_telegram"
+                    "yingcapital_monitor.app.WeixinNotifier.send_weixin"
                 ) as send,
             ):
                 self.assertEqual(run_monitor(configured), 0)
@@ -343,7 +340,7 @@ class MonitorTests(unittest.TestCase):
                     "yingcapital_monitor.app.BinanceClient.fetch_operations",
                     side_effect=OperationDataUnavailable("data=null"),
                 ),
-                patch("yingcapital_monitor.app.TelegramNotifier.send_telegram"),
+                patch("yingcapital_monitor.app.WeixinNotifier.send_weixin"),
             ):
                 self.assertEqual(run_monitor(configured), 1)
 

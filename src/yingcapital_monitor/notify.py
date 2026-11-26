@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
-import urllib.parse
-import urllib.request
+from uuid import uuid4
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .config import Settings
+from .ilink import api_request
 from .models import ACTION_LABELS, TradeEvent, decimal_text
 
 
@@ -52,28 +51,25 @@ def render_event(event: TradeEvent, settings: Settings) -> str:
     )
 
 
-class TelegramNotifier:
+class WeixinNotifier:
     def __init__(self, settings: Settings, *, timeout: float = 20) -> None:
         self.settings = settings
         self.timeout = timeout
 
-    def send_telegram(self, event: TradeEvent) -> None:
-        url = (
-            "https://api.telegram.org/bot"
-            f"{self.settings.telegram_bot_token}/sendMessage"
-        )
-        encoded = urllib.parse.urlencode(
-            {
-                "chat_id": self.settings.telegram_chat_id,
-                "text": render_event(event, self.settings),
-                "disable_web_page_preview": "true",
-            }
-        ).encode("utf-8")
-        request = urllib.request.Request(url=url, data=encoded, method="POST")
-        with urllib.request.urlopen(request, timeout=self.timeout) as response:
-            result = json.loads(response.read().decode("utf-8"))
-        if not isinstance(result, dict) or result.get("ok") is not True:
-            description = (
-                result.get("description") if isinstance(result, dict) else "响应无效"
-            )
-            raise RuntimeError(f"Telegram 发送失败：{description}")
+    def send_weixin(self, event: TradeEvent) -> None:
+        session = self.settings.weixin_session
+        if session is None:
+            raise ValueError("缺少通知配置 WEIXIN_SESSION")
+        message = {
+            "from_user_id": "",
+            "to_user_id": session.user_id,
+            "client_id": str(uuid4()),
+            "message_type": 2,
+            "message_state": 2,
+            "context_token": session.context_token,
+            "item_list": [
+                {"type": 1, "text_item": {"text": render_event(event, self.settings)}}
+            ],
+        }
+        api_request(session.base_url, "sendmessage", {"msg": message},
+                    token=session.bot_token, timeout=self.timeout)

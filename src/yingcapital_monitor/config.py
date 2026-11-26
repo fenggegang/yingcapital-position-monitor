@@ -5,6 +5,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .ilink import WeixinSession
+
 
 DEFAULT_TRADERS_CONFIG_PATH = Path("traders.json")
 
@@ -15,8 +17,7 @@ class Settings:
     trader_name: str
     timezone: str
     state_path: Path
-    telegram_bot_token: str
-    telegram_chat_id: str
+    weixin_session: WeixinSession | None = None
 
     @classmethod
     def all_from_env(
@@ -29,8 +30,11 @@ class Settings:
                 "TRADERS_CONFIG_PATH", str(DEFAULT_TRADERS_CONFIG_PATH)
             ).strip()
         )
-        telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-        telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+        credentials = os.getenv("WEIXIN_SESSION", "").strip()
+        session = (
+            WeixinSession.from_json(credentials)
+            if require_notifications and credentials else None
+        )
 
         try:
             with config_path.open("r", encoding="utf-8") as handle:
@@ -78,8 +82,7 @@ class Settings:
                 trader_name=trader_name,
                 timezone=timezone,
                 state_path=state_dir / f"{portfolio_id}.json",
-                telegram_bot_token=telegram_bot_token,
-                telegram_chat_id=telegram_chat_id,
+                weixin_session=session,
             )
             item.validate(
                 require_notifications=require_notifications and enabled
@@ -97,16 +100,5 @@ class Settings:
             raise ValueError("币安项目 ID 必须是数字")
         if not self.trader_name:
             raise ValueError("交易员名称不能为空")
-        if not require_notifications:
-            return
-
-        missing: list[str] = []
-        required = {
-            "TELEGRAM_BOT_TOKEN": self.telegram_bot_token,
-            "TELEGRAM_CHAT_ID": self.telegram_chat_id,
-        }
-        for name, value in required.items():
-            if not value:
-                missing.append(name)
-        if missing:
-            raise ValueError("缺少通知配置：" + ", ".join(missing))
+        if require_notifications and self.weixin_session is None:
+            raise ValueError("缺少通知配置 WEIXIN_SESSION")

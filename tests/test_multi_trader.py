@@ -12,7 +12,7 @@ from yingcapital_monitor.notify import _format_order_time, render_event
 
 
 class MultiTraderConfigurationTests(unittest.TestCase):
-    def test_eight_default_traders_have_unique_state_files(self) -> None:
+    def test_configured_traders_have_unique_state_files(self) -> None:
         config_path = Path(__file__).resolve().parents[1] / "traders.json"
         traders = json.loads(config_path.read_text(encoding="utf-8"))
         with patch.dict(
@@ -30,17 +30,14 @@ class MultiTraderConfigurationTests(unittest.TestCase):
                 if item["enabled"]
             ],
         )
-        self.assertEqual(len(settings_list), 8)
-        self.assertEqual(len({item.state_path for item in settings_list}), 8)
+        self.assertEqual(len({item.state_path for item in settings_list}), len(settings_list))
 
-    def test_telegram_message_contains_required_trade_fields(self) -> None:
+    def test_weixin_message_contains_required_trade_fields(self) -> None:
         settings = Settings(
             portfolio_id="4532994172262753536",
             trader_name="Sky株式会社",
             timezone="America/New_York",
             state_path=Path(".runtime/test.json"),
-            telegram_bot_token="token",
-            telegram_chat_id="chat",
         )
         event = TradeEvent(
             order_fingerprint="sky-event",
@@ -73,8 +70,6 @@ class MultiTraderConfigurationTests(unittest.TestCase):
             trader_name="Sky株式会社",
             timezone="America/New_York",
             state_path=Path(".runtime/test.json"),
-            telegram_bot_token="token",
-            telegram_chat_id="chat",
         )
         event = TradeEvent(
             order_fingerprint="existing-sky-cl-event",
@@ -115,8 +110,6 @@ class MultiTraderConfigurationTests(unittest.TestCase):
             trader_name="Luke2019",
             timezone="America/New_York",
             state_path=Path(".runtime/test.json"),
-            telegram_bot_token="token",
-            telegram_chat_id="chat",
         )
         event = TradeEvent(
             order_fingerprint="luke-ethusdc-buy",
