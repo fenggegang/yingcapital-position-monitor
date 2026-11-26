@@ -8,7 +8,7 @@ export default {
     }
     const response = await fetch(dispatchUrl, {
       method: "POST",
-      redirect: "error",
+      redirect: "manual",
       headers: {
         Accept: "application/vnd.github+json",
         Authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`,
